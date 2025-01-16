@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comptador de Temps de Tasques - Configuració</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-900 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-6 rounded shadow-md w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4">Comptador de Temps de Tasques</h1>
+        <div class="mb-8 w-full">
+            <label for="numCaixes" class="block mb-2">Número de caixes:</label>
+            <input type="number" id="numCaixes" class="block w-full mb-4 p-2 border border-gray-300 rounded" min="1" max="10" value="4">
+            <label for="contingutCaixes" class="block mb-2">Contingut de les caixes (separat per comes):</label>
+            <input type="text" id="contingutCaixes" class="block w-full mb-4 p-2 border border-gray-300 rounded" value="Desplaçament,Ordinador,Pacient,Telefònica">
+            <button id="crearCaixes" class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Crear Caixes</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('crearCaixes').addEventListener('click', function() {
+            const numCaixes = document.getElementById('numCaixes').value;
+            const contingutCaixes = document.getElementById('contingutCaixes').value;
+            const url = `comptador_temps.html?numCaixes=${numCaixes}&contingutCaixes=${encodeURIComponent(contingutCaixes)}`;
+            window.location.href = url;
+        });
+    </script>
+</body>
+</html>
+

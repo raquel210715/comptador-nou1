@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comptador de Temps de Tasques</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .box {
+            cursor: pointer;
+        }
+        .box-selected {
+            border-width: 4px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 flex flex-col items-center justify-center min-h-screen">
+    <h1 class="text-2xl font-bold mb-4">Comptador de Temps de Tasques</h1>
+    <div id="caixes" class="grid grid-cols-2 gap-4 mb-8 w-full max-w-lg"></div>
+    <button id="stop" class="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4">STOP</button>
+    <div id="tempsCaixes" class="w-full max-w-lg"></div>
+    <div id="percentatges" class="mt-4 hidden w-full max-w-lg"></div>
+
+    <script>
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                numCaixes: parseInt(params.get('numCaixes'), 10),
+                contingutCaixes: params.get('contingutCaixes').split(',')
+            };
+        }
+
+        const intervals = {};
+        let currentTask = null;
+        let startTime = null;
+        let intervalId = null;
+
+        function updateTime() {
+            if (!currentTask || !startTime) return;
+            const now = new Date();
+            const elapsed = Math.floor((now - startTime) / 1000);
+            const total = intervals[currentTask] + elapsed;
+            const seconds = total % 60;
+            const minutes = Math.floor(total / 60) % 60;
+            const hours = Math.floor(total / 3600);
+            document.getElementById(`temps${currentTask}`).innerText = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function selectTask(task) {
+            if (currentTask) {
+                document.getElementById(currentTask).classList.remove('box-selected', `border-${currentTask}`);
+                intervals[currentTask] += Math.floor((new Date() - startTime) / 1000);
+            }
+            if (currentTask === task) {
+                currentTask = null;
+                clearInterval(intervalId);
+                intervalId = null;
+                return;
+            }
+            currentTask = task;
+            startTime = new Date();
+            document.querySelectorAll('.box').forEach(box => box.classList.remove('box-selected'));
+            document.getElementById(task).classList.add('box-selected', `border-${task}`);
+            if (intervalId) clearInterval(intervalId);
+            intervalId = setInterval(updateTime, 1000);
+        }
+
+        function stopTasks() {
+            if (currentTask) {
+                intervals[currentTask] += Math.floor((new Date() - startTime) / 1000);
+                document.getElementById(currentTask).classList.remove('box-selected', `border-${currentTask}`);
+                currentTask = null;
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            const totalTime = Object.values(intervals).reduce((acc, curr) => acc + curr, 0);
+            document.getElementById('percentatges').innerHTML = '';
+            for (let task in intervals) {
+                const percentatge = ((intervals[task] / totalTime) * 100).toFixed(2);
+                document.getElementById('percentatges').innerHTML += 
+                    `<div class="mb-2">Percentatge ${task}: <span>${percentatge}%</span></div>`;
+            }
+            document.getElementById('percentatges').classList.remove('hidden');
+        }
+
+        function crearCaixes(numCaixes, contingutCaixes) {
+            const colors = ['blue', 'green', 'red', 'yellow', 'purple', 'pink', 'indigo', 'gray', 'orange', 'teal'];
+            let caixesHtml = '';
+            let tempsHtml = '';
+            contingutCaixes.slice(0, numCaixes).forEach((contingut, index) => {
+                const color = colors[index % colors.length];
+                const id = contingut.trim().toLowerCase();
+                caixesHtml += `<div id="${id}" class="box bg-${color}-200 p-4 rounded text-center">${contingut.trim()}</div>`;
+                tempsHtml += `<div class="mb-2">Temps ${contingut.trim()}: <span id="temps${id}">00:00:00</span></div>`;
+                intervals[id] = 0;
+            });
+            document.getElementById('caixes').innerHTML = caixesHtml;
+            document.getElementById('tempsCaixes').innerHTML = tempsHtml;
+            document.querySelectorAll('.box').forEach(box => box.addEventListener('click', () => selectTask(box.id)));
+        }
+
+        document.getElementById('stop').addEventListener('click', stopTasks);
+
+        // Crear caixes inicialment basat en els paràmetres de la URL
+        const params = getQueryParams();
+        crearCaixes(params.numCaixes, params.contingutCaixes);
+    </script>
+</body>
+</html>
